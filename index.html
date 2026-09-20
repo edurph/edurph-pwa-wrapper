@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="ms">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+  <title>EDURPH</title>
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="theme-color" content="#312e81">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="EDURPH">
+  <link rel="apple-touch-icon" href="/icon-512.png">
+  <link rel="icon" type="image/png" href="/icon-192.png">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}html,body{width:100%;height:100%;overflow:hidden;background:#312e81;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}#pwaFrame{width:100%;height:100%;border:0;display:block;background:#fff}.loading,.fatal{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:24px;color:#fff;background:radial-gradient(circle at 80% 10%,rgba(59,130,246,.28),transparent 32%),linear-gradient(145deg,#0f172a,#312e81 65%,#6d28d9)}.loading-card,.fatal-card{width:min(430px,100%);text-align:center}.logo{width:88px;height:88px;object-fit:contain;border-radius:22px;filter:drop-shadow(0 10px 22px rgba(0,0,0,.35))}.spinner{width:42px;height:42px;margin:20px auto 16px;border:4px solid rgba(255,255,255,.22);border-top-color:#fbbf24;border-radius:50%;animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}.loading h1{font-size:18px;letter-spacing:.04em}.loading p,.fatal p{margin-top:7px;color:#dbeafe;font-size:13px;line-height:1.55}.fatal{display:none}.fatal-card{padding:28px;border:1px solid rgba(255,255,255,.18);border-radius:27px;background:rgba(255,255,255,.1)}.fatal h1{margin-top:17px;font-size:22px}.install-btn{position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:900;display:none;align-items:center;gap:8px;border:1px solid rgba(255,255,255,.38);border-radius:999px;padding:11px 15px;background:rgba(49,46,129,.94);color:#fff;box-shadow:0 12px 32px rgba(15,23,42,.28);font-weight:850;font-size:13px;backdrop-filter:blur(14px);cursor:pointer}.guide{position:fixed;inset:0;z-index:1200;display:none;align-items:flex-end;justify-content:center;padding:18px;background:rgba(15,23,42,.6)}.guide.open{display:flex}.guide-card{width:min(470px,100%);padding:22px;border-radius:26px;background:#fff;color:#0f172a;box-shadow:0 25px 70px rgba(0,0,0,.36)}.guide-card h2{font-size:20px}.guide-card ol{padding-left:21px;margin:13px 0;color:#334155;line-height:1.7}.guide-card button{width:100%;border:0;border-radius:14px;padding:13px;background:#312e81;color:#fff;font-size:15px;font-weight:850;cursor:pointer}@media(display-mode:standalone){.install-btn{display:none!important}}@media(prefers-reduced-motion:reduce){.spinner{animation-duration:1.8s}}
+  </style>
+</head>
+<body>
+  <div class="loading" id="loadingScreen" role="status" aria-live="polite">
+    <div class="loading-card">
+      <img class="logo" src="/icon-192.png" alt="Logo EDURPH">
+      <div class="spinner"></div>
+      <h1 id="loadingTitle">EDURPH</h1>
+      <p id="loadingText">Mengenal pasti sekolah dan menghubungkan sistem…</p>
+    </div>
+  </div>
+
+  <div class="fatal" id="fatalScreen" role="alert">
+    <div class="fatal-card">
+      <img class="logo" src="/icon-192.png" alt="Logo EDURPH">
+      <h1>Sekolah belum dikonfigurasi</h1>
+      <p id="fatalText">Subdomain ini belum dipautkan kepada mana-mana tenant EDURPH.</p>
+    </div>
+  </div>
+
+  <iframe id="pwaFrame" title="Portal EDURPH" allow="geolocation *; camera *; microphone *"></iframe>
+  <button id="installButton" class="install-btn" type="button">⬇ Pasang Aplikasi</button>
+
+  <div id="installGuide" class="guide" role="dialog" aria-modal="true" aria-labelledby="guideTitle">
+    <div class="guide-card">
+      <h2 id="guideTitle">Pasang EDURPH pada iPhone</h2>
+      <ol>
+        <li>Tekan ikon <b>Share</b> di bahagian bawah Safari.</li>
+        <li>Pilih <b>Add to Home Screen</b>.</li>
+        <li>Tekan <b>Add</b> untuk memasang aplikasi.</li>
+      </ol>
+      <button id="closeGuide" type="button">Faham</button>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      'use strict';
+      var GAS_URL='https://script.google.com/macros/s/AKfycbwZzDr6LTt1ycX-7v0vzVFQspB7vrYIR8vxppONA3XQScjeCbZdCmsrTtLtSMX5eXPyhQ/exec';
+      var loading=document.getElementById('loadingScreen');
+      var frame=document.getElementById('pwaFrame');
+      var fatal=document.getElementById('fatalScreen');
+      var installButton=document.getElementById('installButton');
+      var guide=document.getElementById('installGuide');
+      var deferredInstallPrompt=null;
+
+      function slugFromHost(){
+        var host=location.hostname.toLowerCase();
+        if(host.endsWith('.edurph.com')){
+          var slug=host.slice(0,-'.edurph.com'.length);
+          return slug==='www'?'':slug;
+        }
+        return new URLSearchParams(location.search).get('school')||'';
+      }
+
+      function hideLoading(){
+        if(!loading)return;
+        loading.style.opacity='0';
+        setTimeout(function(){loading.style.display='none';},400);
+      }
+
+      function showFatal(slug){
+        loading.style.display='none';
+        fatal.style.display='flex';
+        document.getElementById('fatalText').textContent='Subdomain '+(slug||'(tidak diketahui)')+' belum dipautkan kepada tenant EDURPH. Hubungi pentadbir sistem.';
+      }
+
+      function loadPortal(school){
+        var target=new URL(GAS_URL);
+        var input=new URLSearchParams(location.search);
+        input.delete('school');
+        input.delete('source');
+        input.forEach(function(value,key){target.searchParams.set(key,value);});
+        if(school&&school.tenantKey)target.searchParams.set('tenant',school.tenantKey);
+        frame.addEventListener('load',hideLoading,{once:true});
+        frame.src=target.toString();
+        setTimeout(hideLoading,7000);
+      }
+
+      fetch('/tenant-config.json',{cache:'no-store'})
+        .then(function(response){if(!response.ok)throw new Error('Konfigurasi sekolah tidak dapat dibaca.');return response.json();})
+        .then(function(config){
+          var slug=slugFromHost();
+          var isMain=location.hostname==='edurph.com'||location.hostname==='www.edurph.com';
+          var school=config[slug]||null;
+          if(slug&&!school){showFatal(slug);return;}
+          if(school){
+            document.title=school.appName||('EDURPH • '+school.schoolName);
+            document.querySelector('meta[name="apple-mobile-web-app-title"]').content=school.schoolName||'EDURPH';
+            document.getElementById('loadingTitle').textContent=school.appName||'EDURPH';
+            document.getElementById('loadingText').textContent='Menghubungkan '+school.schoolName+'…';
+          }else if(!isMain){showFatal(slug);return;}
+          loadPortal(school);
+        })
+        .catch(function(error){
+          document.getElementById('fatalText').textContent=error.message||String(error);
+          loading.style.display='none';fatal.style.display='flex';
+        });
+
+      window.addEventListener('beforeinstallprompt',function(event){
+        event.preventDefault();deferredInstallPrompt=event;installButton.style.display='flex';
+      });
+      installButton.addEventListener('click',function(){
+        if(deferredInstallPrompt){
+          deferredInstallPrompt.prompt();
+          deferredInstallPrompt.userChoice.finally(function(){deferredInstallPrompt=null;installButton.style.display='none';});
+          return;
+        }
+        guide.classList.add('open');
+      });
+      document.getElementById('closeGuide').addEventListener('click',function(){guide.classList.remove('open');});
+      var isiOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
+      var standalone=window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+      if(isiOS&&!standalone){installButton.textContent='＋ Pasang pada iPhone';installButton.style.display='flex';}
+
+      if('serviceWorker' in navigator){
+        window.addEventListener('load',function(){navigator.serviceWorker.register('/sw.js',{scope:'/'}).catch(function(error){console.warn('Service worker gagal:',error);});});
+      }
+    })();
+  </script>
+</body>
+</html>

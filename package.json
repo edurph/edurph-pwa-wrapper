@@ -1,0 +1,9 @@
+{
+  "name": "edurph-pwa-wrapper",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Pembungkus PWA multi-tenant EDURPH untuk subdomain sekolah",
+  "engines": {
+    "node": ">=20"
+  }
+}
