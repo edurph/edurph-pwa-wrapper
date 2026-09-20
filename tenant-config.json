@@ -3,5 +3,10 @@
     "tenantKey": "sook",
     "schoolName": "SK Sook",
     "appName": "EDURPH • SK Sook"
+  },
+  "sklotong": {
+    "tenantKey": "lotong",
+    "schoolName": "SK Lotong",
+    "appName": "EDURPH • SK Lotong"
   }
 }
