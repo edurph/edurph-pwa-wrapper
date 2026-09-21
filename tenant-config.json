@@ -8,5 +8,10 @@
     "tenantKey": "lotong",
     "schoolName": "SK Lotong",
     "appName": "EDURPH • SK Lotong"
+  },
+  "skkalampun": {
+    "tenantKey": "kalampun",
+    "schoolName": "SK Kalampun",
+    "appName": "EDURPH • SK Kalampun"
   }
 }
